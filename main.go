@@ -15,8 +15,6 @@ import (
 
 func main() {
 	fmt.Println("Service User Campaign")
-
-	// Initiate service
 	err := godotenv.Load()
 	if err != nil {
 		log.Fatal("Error loading .env file")

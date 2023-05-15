@@ -9,7 +9,6 @@ import (
 )
 
 func InitLog() {
-	// setup log
 	f, err := os.Create("./log/gin.log")
 	if err != nil {
 		log.Fatal("cannot create open gin.log", err)
