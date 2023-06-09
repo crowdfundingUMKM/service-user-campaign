@@ -39,7 +39,7 @@ func main() {
 	api := router.Group("api/v1")
 
 	// Rounting admin
-	api.POST("register_campaign", userHandler.RegisterUser)
+	api.POST("/register_campaign", userHandler.RegisterUser)
 
 	url := fmt.Sprintf("%s:%s", os.Getenv("SERVICE_HOST"), os.Getenv("SERVICE_PORT"))
 	router.Run(url)
