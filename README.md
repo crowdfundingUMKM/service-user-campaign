@@ -3,7 +3,7 @@
 
 - Admin req
 
-- [ ]CORS CONFIG
+- [x]CORS CONFIG
 
 - [] ~GET Log service
 - [] GET Service status

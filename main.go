@@ -6,9 +6,11 @@ import (
 	"os"
 	"service-user-campaign/auth"
 	"service-user-campaign/campaign"
+	"service-user-campaign/config"
 	"service-user-campaign/database"
 	"service-user-campaign/handler"
 
+	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
 )
@@ -20,7 +22,7 @@ func main() {
 		log.Fatal("Error loading .env file")
 	}
 	// setup log
-	// L.InitLog()
+	// config.InitLog()
 	// setup repository
 	db := database.NewConnectionDB()
 	userCampaignRepository := campaign.NewRepository(db)
@@ -36,6 +38,12 @@ func main() {
 
 	// RUN SERVICE
 	router := gin.Default()
+
+	// setup cors
+	corsConfig := config.InitCors()
+	router.Use(cors.New(corsConfig))
+
+	// group route
 	api := router.Group("api/v1")
 
 	// Rounting admin
