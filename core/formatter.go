@@ -1,4 +1,4 @@
-package campaign
+package core
 
 type UserCampaignFormatter struct {
 	ID            int    `json:"id"`

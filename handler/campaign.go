@@ -3,18 +3,18 @@ package handler
 import (
 	"net/http"
 	"service-user-campaign/auth"
-	"service-user-campaign/campaign"
+	"service-user-campaign/core"
 	"service-user-campaign/helper"
 
 	"github.com/gin-gonic/gin"
 )
 
 type userCampaignHandler struct {
-	userService campaign.Service
+	userService core.Service
 	authService auth.Service
 }
 
-func NewUserHandler(userService campaign.Service, authService auth.Service) *userCampaignHandler {
+func NewUserHandler(userService core.Service, authService auth.Service) *userCampaignHandler {
 	return &userCampaignHandler{userService, authService}
 }
 
@@ -23,7 +23,7 @@ func (h *userCampaignHandler) RegisterUser(c *gin.Context) {
 	// map input dari user ke struct RegisterUserInput
 	// struct di atas kita passing sebagai parameter service
 
-	var input campaign.RegisterUserInput
+	var input core.RegisterUserInput
 
 	err := c.ShouldBindJSON(&input)
 	if err != nil {
@@ -51,7 +51,7 @@ func (h *userCampaignHandler) RegisterUser(c *gin.Context) {
 		}
 	}
 
-	formatter := campaign.FormatterUser(newUser, token)
+	formatter := core.FormatterUser(newUser, token)
 
 	if formatter.StatusAccount == "active" {
 		response := helper.APIResponse("Account has been registered and active", http.StatusOK, "success", formatter)

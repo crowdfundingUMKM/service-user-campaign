@@ -5,8 +5,8 @@ import (
 	"log"
 	"os"
 	"service-user-campaign/auth"
-	"service-user-campaign/campaign"
 	"service-user-campaign/config"
+	"service-user-campaign/core"
 	"service-user-campaign/database"
 	"service-user-campaign/handler"
 
@@ -25,10 +25,10 @@ func main() {
 	// config.InitLog()
 	// setup repository
 	db := database.NewConnectionDB()
-	userCampaignRepository := campaign.NewRepository(db)
+	userCampaignRepository := core.NewRepository(db)
 
 	// setup service
-	userCampaignService := campaign.NewService(userCampaignRepository)
+	userCampaignService := core.NewService(userCampaignRepository)
 	authService := auth.NewService()
 
 	// setup handler

@@ -1,4 +1,4 @@
-package campaign
+package core
 
 type RegisterUserInput struct {
 	Name        string `json:"name" binding:"required"`
