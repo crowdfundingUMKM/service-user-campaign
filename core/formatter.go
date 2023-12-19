@@ -6,7 +6,7 @@ type UserCampaignFormatter struct {
 	Name          string `json:"name"`
 	Email         string `json:"email"`
 	Phone         string `json:"phone"`
-	Description   string `json:"description"`
+	BioUser       string `json:"bio_user"`
 	Token         string `json:"token"`
 	StatusAccount string `json:"status_account"`
 }
@@ -18,7 +18,7 @@ func FormatterUser(user User, token string) UserCampaignFormatter {
 		Name:          user.Name,
 		Email:         user.Email,
 		Phone:         user.Phone,
-		Description:   user.Description,
+		BioUser:       user.BioUser,
 		Token:         token,
 		StatusAccount: user.StatusAccount,
 	}

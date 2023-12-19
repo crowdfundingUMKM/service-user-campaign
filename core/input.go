@@ -1,9 +1,9 @@
 package core
 
 type RegisterUserInput struct {
-	Name        string `json:"name" binding:"required"`
-	Phone       string `json:"phone" binding:"required"`
-	Description string `json:"description"`
-	Email       string `json:"email" binding:"required,email"`
-	Password    string `json:"password" binding:"required"`
+	Name     string `json:"name" binding:"required"`
+	Email    string `json:"email" binding:"required,email"`
+	Phone    string `json:"phone" binding:"required"`
+	BioUser  string `json:"bio_user" binding:"required"`
+	Password string `json:"password" binding:"required"`
 }
