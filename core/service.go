@@ -1,6 +1,7 @@
 package core
 
 import (
+	"errors"
 	"os"
 
 	"github.com/google/uuid"
@@ -8,7 +9,15 @@ import (
 )
 
 type Service interface {
+	GetUserByUnixID(UnixID string) (User, error)
+
 	RegisterUser(input RegisterUserInput) (User, error)
+	Login(input LoginInput) (User, error)
+	SaveToken(UnixID string, Token string) (User, error)
+
+	// notif
+	ReportAdmin(UnixID string, input ReportToAdminInput) (NotifCampaign, error)
+	GetAllReport() ([]NotifCampaign, error)
 }
 
 type service struct {
@@ -19,6 +28,19 @@ func NewService(repository Repository) *service {
 	return &service{repository}
 }
 
+func (s *service) GetUserByUnixID(UnixID string) (User, error) {
+	user, err := s.repository.FindByUnixID(UnixID)
+	if err != nil {
+		return user, err
+	}
+
+	if user.UnixID == "" {
+		return user, errors.New("No user found on with that ID")
+	}
+
+	return user, nil
+}
+
 func (s *service) RegisterUser(input RegisterUserInput) (User, error) {
 	user := User{}
 	user.UnixID = uuid.New().String()[:12]
@@ -26,6 +48,9 @@ func (s *service) RegisterUser(input RegisterUserInput) (User, error) {
 	user.Email = input.Email
 	user.Phone = input.Phone
 	user.BioUser = input.BioUser
+	user.AvatarFileName = "/crwdstorage/avatar_investor/dafault-avatar.png"
+	user.FBLink = "https://www.facebook.com/"
+	user.IGLink = "https://www.instagram.com/"
 
 	passwordHash, err := bcrypt.GenerateFromPassword([]byte(input.Password), bcrypt.MinCost)
 
@@ -42,4 +67,63 @@ func (s *service) RegisterUser(input RegisterUserInput) (User, error) {
 		return newUser, err
 	}
 	return newUser, nil
+}
+
+func (s *service) Login(input LoginInput) (User, error) {
+	email := input.Email
+	password := input.Password
+
+	user, err := s.repository.FindByEmail(email)
+	if err != nil {
+		return user, err
+	}
+	if user.ID == 0 {
+		return user, errors.New("No user found on that email")
+	}
+
+	err = bcrypt.CompareHashAndPassword([]byte(user.PasswordHash), []byte(password))
+
+	if err != nil {
+		return user, err
+	}
+
+	return user, nil
+}
+
+// save token to database
+func (s *service) SaveToken(UnixID string, Token string) (User, error) {
+	user, err := s.repository.FindByUnixID(UnixID)
+	user.Token = Token
+	_, err = s.repository.UpdateToken(user)
+
+	if err != nil {
+		return user, err
+	}
+
+	return user, nil
+}
+
+// Notif
+func (s *service) ReportAdmin(UnixID string, input ReportToAdminInput) (NotifCampaign, error) {
+	notif := NotifCampaign{}
+	notif.UserCampaignId = UnixID
+	notif.Title = input.Title
+	notif.Description = input.Description
+	notif.TypeError = input.TypeError
+	notif.StatusNotif = 1
+
+	newNotif, err := s.repository.SaveReport(notif)
+	if err != nil {
+		return newNotif, err
+	}
+	return newNotif, nil
+}
+
+// get all users
+func (s *service) GetAllReport() ([]NotifCampaign, error) {
+	report, err := s.repository.GetAllReport()
+	if err != nil {
+		return report, err
+	}
+	return report, nil
 }

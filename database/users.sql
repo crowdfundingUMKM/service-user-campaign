@@ -4,7 +4,7 @@ CREATE TABLE `users` (
     `unix_id` CHAR(12) NOT NULL,
     `name` VARCHAR(255) NOT NULL,
     `email` VARCHAR(255),
-    `phone` INT(11),
+    `phone` VARCHAR(255),
     `country` VARCHAR(255),
     `address` VARCHAR(255),
     `bio_user` TEXT,
@@ -14,8 +14,8 @@ CREATE TABLE `users` (
     `status_account` VARCHAR(10),
     `avatar_file_name` VARCHAR(255),
     `token` VARCHAR(255),
-    `update_id_admin` CHAR(12),
-    `update_at_admin` DATETIME,
+    `update_id_admin` CHAR(12) DEFAULT NULL,
+    `update_at_admin` DATETIME DEFAULT NULL,
     `created_at` DATETIME DEFAULT NULL,
     `updated_at` DATETIME DEFAULT NULL,
     PRIMARY KEY (`id`)
@@ -24,7 +24,7 @@ CREATE TABLE `users` (
 -- Tabel notif_campaigns
 CREATE TABLE `notif_campaigns` (
     `id` INT(11) NOT NULL AUTO_INCREMENT,
-    `user_investor` CHAR(12),
+    `user_campaign` CHAR(12),
     `title` VARCHAR(255),
     `description` TEXT,
     `type_error` VARCHAR(11),

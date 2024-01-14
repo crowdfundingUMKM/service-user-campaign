@@ -32,20 +32,20 @@ type User struct {
 	StatusAccount  string
 	AvatarFileName string
 	Token          string
-	UpdateIDAdmin  string
+	UpdateIdAdmin  string
 	UpdateAtAdmin  time.Time
 	CreatedAt      time.Time
 	UpdatedAt      time.Time
 }
 
 type NotifCampaign struct {
-	ID           int
-	UserInvestor string
-	Title        string
-	Description  string
-	TypeError    string
-	Document     string
-	StatusNotif  int
-	CreatedAt    time.Time
-	UpdatedAt    time.Time
+	ID             int
+	UserCampaignId string
+	Title          string
+	Description    string
+	TypeError      string
+	Document       string
+	StatusNotif    int
+	CreatedAt      time.Time
+	UpdatedAt      time.Time
 }
