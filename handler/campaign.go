@@ -2,6 +2,7 @@ package handler
 
 import (
 	"net/http"
+	api_admin "service-user-campaign/api/admin"
 	"service-user-campaign/auth"
 	"service-user-campaign/core"
 	"service-user-campaign/helper"
@@ -42,6 +43,37 @@ func (h *userCampaignHandler) GetInfoAdminID(c *gin.Context) {
 	response := helper.APIResponse("Successfuly get user id and status", http.StatusOK, "success", formatter)
 	c.JSON(http.StatusOK, response)
 
+}
+
+func (h *userCampaignHandler) GetAllUserData(c *gin.Context) {
+	// cheack id from get param and fetch data from service admin to check id admin and status account admin
+	// var adminInput investor.AdminIdInput
+	adminID := c.Param("admin_id")
+	adminInput := api_admin.AdminIdInput{UnixID: adminID}
+	getAdminValueId, err := api_admin.GetAdminId(adminInput)
+
+	currentAdmin := c.MustGet("currentUserAdmin").(api_admin.AdminId)
+
+	if err != nil {
+		response := helper.APIResponse(err.Error(), http.StatusBadRequest, "error", nil)
+		c.JSON(http.StatusBadRequest, response)
+		return
+	}
+
+	if c.Param("admin_id") == getAdminValueId && currentAdmin.UnixAdmin == getAdminValueId {
+		users, err := h.userService.GetAllUsers()
+		if err != nil {
+			response := helper.APIResponse("Failed to get user", http.StatusBadRequest, "error", nil)
+			c.JSON(http.StatusBadRequest, response)
+			return
+		}
+		response := helper.APIResponse("List of user", http.StatusOK, "success", users)
+		c.JSON(http.StatusOK, response)
+	} else {
+		response := helper.APIResponse("Your not Admin, cannot Access", http.StatusUnprocessableEntity, "error", nil)
+		c.JSON(http.StatusNotFound, response)
+		return
+	}
 }
 
 // verify token
@@ -210,4 +242,86 @@ func (h *userCampaignHandler) GetUser(c *gin.Context) {
 
 	response := helper.APIResponse("Successfuly get user by middleware", http.StatusOK, "success", formatter)
 	c.JSON(http.StatusOK, response)
+}
+
+func (h *userCampaignHandler) UpdateUser(c *gin.Context) {
+	currentUser := c.MustGet("currentUser").(core.User)
+
+	// if account deactive
+	if currentUser.StatusAccount == "deactive" {
+		errorMessage := gin.H{"errors": "Your account is deactive by admin"}
+		response := helper.APIResponse("Update user failed", http.StatusUnprocessableEntity, "error", errorMessage)
+		c.JSON(http.StatusUnprocessableEntity, response)
+		return
+	}
+
+	// if you logout you can't get user
+	if currentUser.Token == "" {
+		errorMessage := gin.H{"errors": "Your account is logout"}
+		response := helper.APIResponse("Get user failed", http.StatusUnprocessableEntity, "error", errorMessage)
+		c.JSON(http.StatusUnprocessableEntity, response)
+		return
+	}
+
+	var inputData core.UpdateUserInput
+
+	err := c.ShouldBindJSON(&inputData)
+	if err != nil {
+		errors := helper.FormatValidationError(err)
+		errorMessage := gin.H{"errors": errors}
+
+		response := helper.APIResponse("Update user failed, input data failure", http.StatusUnprocessableEntity, "error", errorMessage)
+		c.JSON(http.StatusUnprocessableEntity, response)
+		return
+	}
+
+	updatedUser, err := h.userService.UpdateUserByUnixID(currentUser.UnixID, inputData)
+	if err != nil {
+		response := helper.APIResponse("Update user failed", http.StatusBadRequest, "error", nil)
+		c.JSON(http.StatusBadRequest, response)
+		return
+	}
+
+	formatter := core.FormatterUserDetail(currentUser, updatedUser)
+
+	response := helper.APIResponse("User has been updated", http.StatusOK, "success", formatter)
+	c.JSON(http.StatusOK, response)
+	return
+}
+
+func (h *userCampaignHandler) UpdatePassword(c *gin.Context) {
+	currentUser := c.MustGet("currentUser").(core.User)
+
+	// if you logout you can't get user
+	if currentUser.Token == "" {
+		errorMessage := gin.H{"errors": "Your account is logout"}
+		response := helper.APIResponse("Get user failed", http.StatusUnprocessableEntity, "error", errorMessage)
+		c.JSON(http.StatusUnprocessableEntity, response)
+		return
+	}
+
+	var inputData core.UpdatePasswordInput
+
+	err := c.ShouldBindJSON(&inputData)
+	if err != nil {
+		errors := helper.FormatValidationError(err)
+		errorMessage := gin.H{"errors": errors}
+
+		response := helper.APIResponse("Update password failed, input data failure", http.StatusUnprocessableEntity, "error", errorMessage)
+		c.JSON(http.StatusUnprocessableEntity, response)
+		return
+	}
+
+	updatedUser, err := h.userService.UpdatePasswordByUnixID(currentUser.UnixID, inputData)
+	if err != nil {
+		response := helper.APIResponse("Update password failed", http.StatusBadRequest, "error", nil)
+		c.JSON(http.StatusBadRequest, response)
+		return
+	}
+
+	formatter := core.FormatterUserDetail(currentUser, updatedUser)
+
+	response := helper.APIResponse("Password has been updated", http.StatusOK, "success", formatter)
+	c.JSON(http.StatusOK, response)
+	return
 }

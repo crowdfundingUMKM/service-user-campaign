@@ -54,7 +54,7 @@ func main() {
 	// api.POST("/admin/active_user/:admin_id", middleware.AuthApiAdminMiddleware(authService, userInvestorService), userHandler.ActiveUser)
 
 	// make endpoint get all user by admin
-	// api.GET("/admin/get_all_user/:admin_id", middleware.AuthApiAdminMiddleware(authService, userInvestorService), userHandler.GetAllUserData)
+	api.GET("/admin/get_all_user/:admin_id", middleware.AuthApiAdminMiddleware(authService, userCampaignService), userHandler.GetAllUserData)
 
 	// route give information to user about admin
 	api.GET("/campaigns/getCampaignID/:unix_id", userHandler.GetInfoAdminID)
@@ -68,17 +68,17 @@ func main() {
 
 	api.GET("/get_user", middleware.AuthMiddleware(authService, userCampaignService), userHandler.GetUser)
 
-	// api.PUT("/update_profile", middleware.AuthMiddleware(authService, userInvestorService), userHandler.UpdateUser)
+	api.PUT("/update_profile", middleware.AuthMiddleware(authService, userCampaignService), userHandler.UpdateUser)
 	//make update password user by unix_id
-	// api.PUT("/update_password", middleware.AuthMiddleware(authService, userInvestorService), userHandler.UpdatePassword)
+	api.PUT("/update_password", middleware.AuthMiddleware(authService, userCampaignService), userHandler.UpdatePassword)
 	//make create image profile user by unix_id this for update
-	// api.POST("/upload_avatar", middleware.AuthMiddleware(authService, userInvestorService), userHandler.UploadAvatar)
+	api.POST("/upload_avatar", middleware.AuthMiddleware(authService, userCampaignService), userHandler.UploadAvatar)
 
 	// make logout user by unix_id
-	// api.POST("/logout_investor", middleware.AuthMiddleware(authService, userInvestorService), userHandler.LogoutUser)
+	// api.POST("/logout_campaign", middleware.AuthMiddleware(authService, userCampaignService), userHandler.LogoutUser)
 
 	// Notif to admin route
-	// api.POST("/report_to_admin", middleware.AuthMiddleware(authService, userInvestorService), notifHandler.ReportToAdmin)
+	// api.POST("/report_to_admin", middleware.AuthMiddleware(authService, userCampaignService), notifHandler.ReportToAdmin)
 
 	url := fmt.Sprintf("%s:%s", os.Getenv("SERVICE_HOST"), os.Getenv("SERVICE_PORT"))
 	router.Run(url)

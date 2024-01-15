@@ -1,4 +1,4 @@
--- Tabel users
+-- user_campaign table
 CREATE TABLE `users` (
     `id` INT(11) NOT NULL AUTO_INCREMENT,
     `unix_id` CHAR(12) NOT NULL,
@@ -6,26 +6,28 @@ CREATE TABLE `users` (
     `email` VARCHAR(255),
     `phone` VARCHAR(255),
     `country` VARCHAR(255),
-    `address` VARCHAR(255),
+    `addreas` VARCHAR(255),
     `bio_user` TEXT,
     `fb_link` VARCHAR(255),
     `ig_link` VARCHAR(255),
-    `password_hash` VARCHAR(255) DEFAULT NULL,
+    `password_hash` VARCHAR(255),
     `status_account` VARCHAR(10),
     `avatar_file_name` VARCHAR(255),
     `token` VARCHAR(255),
-    `update_id_admin` CHAR(12) DEFAULT NULL,
-    `update_at_admin` DATETIME DEFAULT NULL,
-    `created_at` DATETIME DEFAULT NULL,
-    `updated_at` DATETIME DEFAULT NULL,
+    `update_id_admin` CHAR(12),
+    `update_at_admin` DATETIME,
+    `created_at` DATETIME,
+    `updated_at` DATETIME,
     PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
--- Tabel notif_campaigns
+-- insert data
+
+-- notif_campaign table
 CREATE TABLE `notif_campaigns` (
     `id` INT(11) NOT NULL AUTO_INCREMENT,
-    `user_campaign` CHAR(12),
-    `title` VARCHAR(255),
+    `user_campaign_id` CHAR(12) NOT NULL,
+    `title` VARCHAR(255) NOT NULL,
     `description` TEXT,
     `type_error` VARCHAR(11),
     `document` VARCHAR(255),
@@ -34,6 +36,7 @@ CREATE TABLE `notif_campaigns` (
     `updated_at` DATETIME,
     PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
 
 
 -- Indexes for table `users`

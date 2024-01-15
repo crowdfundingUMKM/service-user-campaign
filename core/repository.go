@@ -4,10 +4,15 @@ import "gorm.io/gorm"
 
 // KONTRAK
 type Repository interface {
+	// admin
+	GetAllUser() ([]User, error)
+
 	Save(user User) (User, error)
 	FindByUnixID(unix_id string) (User, error)
 	FindByEmail(email string) (User, error)
 	UpdateToken(user User) (User, error)
+	Update(user User) (User, error)
+	UpdatePassword(user User) (User, error)
 
 	// Notif
 	SaveReport(report NotifCampaign) (NotifCampaign, error)
@@ -32,6 +37,18 @@ func (r *repository) UpdateToken(user User) (User, error) {
 
 func NewRepository(db *gorm.DB) *repository {
 	return &repository{db}
+}
+
+func (r *repository) GetAllUser() ([]User, error) {
+	var user []User
+
+	err := r.db.Find(&user).Error
+
+	if err != nil {
+		return user, err
+	}
+
+	return user, nil
 }
 
 func (r *repository) Save(user User) (User, error) {
@@ -118,4 +135,14 @@ func (r *repository) GetAllReport() ([]NotifCampaign, error) {
 	}
 
 	return notifInvestor, nil
+}
+
+func (r *repository) UpdatePassword(user User) (User, error) {
+	err := r.db.Model(&user).Update("password_hash", user.PasswordHash).Error
+
+	if err != nil {
+		return user, err
+	}
+
+	return user, nil
 }

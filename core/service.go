@@ -9,6 +9,8 @@ import (
 )
 
 type Service interface {
+	GetAllUsers() ([]User, error)
+
 	GetUserByUnixID(UnixID string) (User, error)
 
 	RegisterUser(input RegisterUserInput) (User, error)
@@ -18,6 +20,9 @@ type Service interface {
 	// notif
 	ReportAdmin(UnixID string, input ReportToAdminInput) (NotifCampaign, error)
 	GetAllReport() ([]NotifCampaign, error)
+
+	UpdatePasswordByUnixID(UnixID string, input UpdatePasswordInput) (User, error)
+	UpdateUserByUnixID(UnixID string, input UpdateUserInput) (User, error)
 }
 
 type service struct {
@@ -39,6 +44,13 @@ func (s *service) GetUserByUnixID(UnixID string) (User, error) {
 	}
 
 	return user, nil
+}
+func (s *service) GetAllUsers() ([]User, error) {
+	users, err := s.repository.GetAllUser()
+	if err != nil {
+		return users, err
+	}
+	return users, nil
 }
 
 func (s *service) RegisterUser(input RegisterUserInput) (User, error) {
@@ -126,4 +138,62 @@ func (s *service) GetAllReport() ([]NotifCampaign, error) {
 		return report, err
 	}
 	return report, nil
+}
+
+func (s *service) UpdateUserByUnixID(UnixID string, input UpdateUserInput) (User, error) {
+	user, err := s.repository.FindByUnixID(UnixID)
+	if err != nil {
+		return user, err
+	}
+
+	if user.UnixID == "" {
+		return user, errors.New("No user found on with that ID")
+	}
+
+	user.Name = input.Name
+	user.Phone = input.Phone
+	user.BioUser = input.BioUser
+	user.Address = input.Address
+	user.Country = input.Country
+	user.FBLink = input.FBLink
+	user.IGLink = input.IGLink
+
+	updatedUser, err := s.repository.Update(user)
+	if err != nil {
+		return updatedUser, err
+	}
+
+	return updatedUser, nil
+}
+
+func (s *service) UpdatePasswordByUnixID(UnixID string, input UpdatePasswordInput) (User, error) {
+	user, err := s.repository.FindByUnixID(UnixID)
+	if err != nil {
+		return user, err
+	}
+
+	if user.UnixID == "" {
+		return user, errors.New("No user found on with that ID")
+	}
+
+	err = bcrypt.CompareHashAndPassword([]byte(user.PasswordHash), []byte(input.OldPassword))
+
+	if err != nil {
+		return user, err
+	}
+
+	passwordHash, err := bcrypt.GenerateFromPassword([]byte(input.NewPassword), bcrypt.MinCost)
+
+	if err != nil {
+		return user, err
+	}
+
+	user.PasswordHash = string(passwordHash)
+
+	updatedUser, err := s.repository.UpdatePassword(user)
+	if err != nil {
+		return updatedUser, err
+	}
+
+	return updatedUser, nil
 }

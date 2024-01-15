@@ -38,7 +38,7 @@ type UpdateUserInput struct {
 	Name    string `json:"name" `
 	Phone   string `json:"phone" `
 	BioUser string `json:"bio_user" `
-	Addreas string `json:"addreas" `
+	Address string `json:"addreas" `
 	Country string `json:"country" `
 	FBLink  string `json:"fb_link" `
 	IGLink  string `json:"ig_link" `
