@@ -18,6 +18,8 @@ type Repository interface {
 	// Notif
 	SaveReport(report NotifCampaign) (NotifCampaign, error)
 	GetAllReport() ([]NotifCampaign, error)
+
+	UpdateStatusAccount(user User) (User, error)
 }
 
 type repository struct {
@@ -44,6 +46,21 @@ func (r *repository) GetAllUser() ([]User, error) {
 	var user []User
 
 	err := r.db.Find(&user).Error
+
+	if err != nil {
+		return user, err
+	}
+
+	return user, nil
+}
+
+func (r *repository) UpdateStatusAccount(user User) (User, error) {
+	// update status_account and update_by_admin
+
+	err := r.db.Model(&user).Updates(User{
+		StatusAccount: user.StatusAccount,
+		UpdateIdAdmin: user.UpdateIdAdmin,
+	}).Error
 
 	if err != nil {
 		return user, err
@@ -127,15 +144,15 @@ func (r *repository) SaveReport(notifCampaign NotifCampaign) (NotifCampaign, err
 
 // get all user
 func (r *repository) GetAllReport() ([]NotifCampaign, error) {
-	var notifInvestor []NotifCampaign
+	var notifCampaign []NotifCampaign
 
-	err := r.db.Find(&notifInvestor).Error
+	err := r.db.Find(&notifCampaign).Error
 
 	if err != nil {
-		return notifInvestor, err
+		return notifCampaign, err
 	}
 
-	return notifInvestor, nil
+	return notifCampaign, nil
 }
 
 func (r *repository) UpdatePassword(user User) (User, error) {

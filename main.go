@@ -49,10 +49,10 @@ func main() {
 	api := router.Group("api/v1")
 
 	// admin request -> service user admin
-	// api.GET("/admin/log_service_toAdmin/:admin_id", middleware.AuthApiAdminMiddleware(authService, userInvestorService), userHandler.GetLogtoAdmin)
-	// api.GET("/admin/service_status/:admin_id", middleware.AuthApiAdminMiddleware(authService, userInvestorService), userHandler.ServiceHealth)
-	// api.POST("/admin/deactive_user/:admin_id", middleware.AuthApiAdminMiddleware(authService, userInvestorService), userHandler.DeactiveUser)
-	// api.POST("/admin/active_user/:admin_id", middleware.AuthApiAdminMiddleware(authService, userInvestorService), userHandler.ActiveUser)
+	// api.GET("/admin/log_service_toAdmin/:admin_id", middleware.AuthApiAdminMiddleware(authService, userCampaignService), userHandler.GetLogtoAdmin)
+	api.GET("/admin/service_status/:admin_id", middleware.AuthApiAdminMiddleware(authService, userCampaignService), userHandler.ServiceHealth)
+	api.PUT("/admin/deactive_user/:admin_id", middleware.AuthApiAdminMiddleware(authService, userCampaignService), userHandler.DeactiveUser)
+	api.PUT("/admin/active_user/:admin_id", middleware.AuthApiAdminMiddleware(authService, userCampaignService), userHandler.ActiveUser)
 
 	// make endpoint get all user by admin
 	api.GET("/admin/get_all_user/:admin_id", middleware.AuthApiAdminMiddleware(authService, userCampaignService), userHandler.GetAllUserData)
@@ -80,6 +80,7 @@ func main() {
 
 	// Notif to admin route
 	api.POST("/report_to_admin", middleware.AuthMiddleware(authService, userCampaignService), notifHandler.ReportToAdmin)
+	api.GET("/admin/get_notif_admin", middleware.AuthApiAdminMiddleware(authService, userCampaignService), notifHandler.GetNotifToAdmin)
 
 	url := fmt.Sprintf("%s:%s", os.Getenv("SERVICE_HOST"), os.Getenv("SERVICE_PORT"))
 	router.Run(url)

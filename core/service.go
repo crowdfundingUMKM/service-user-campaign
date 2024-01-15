@@ -12,6 +12,8 @@ type Service interface {
 	GetAllUsers() ([]User, error)
 
 	GetUserByUnixID(UnixID string) (User, error)
+	DeactivateAccountUser(input DeactiveUserInput, adminId string) (bool, error)
+	ActivateAccountUser(input DeactiveUserInput, adminId string) (bool, error)
 
 	RegisterUser(input RegisterUserInput) (User, error)
 	Login(input LoginInput) (User, error)
@@ -19,7 +21,7 @@ type Service interface {
 
 	// notif
 	ReportAdmin(UnixID string, input ReportToAdminInput) (NotifCampaign, error)
-	GetAllReport() ([]NotifCampaign, error)
+	GetAllReports() ([]NotifCampaign, error)
 
 	UpdatePasswordByUnixID(UnixID string, input UpdatePasswordInput) (User, error)
 	UpdateUserByUnixID(UnixID string, input UpdateUserInput) (User, error)
@@ -55,6 +57,52 @@ func (s *service) GetAllUsers() ([]User, error) {
 		return users, err
 	}
 	return users, nil
+}
+
+func (s *service) DeactivateAccountUser(input DeactiveUserInput, adminId string) (bool, error) {
+	// fin user by unix id
+	user, err := s.repository.FindByUnixID(input.UnixID)
+	if err != nil {
+		return false, err
+	}
+	if adminId == "" {
+		return false, errors.New("Admin ID is empty")
+	}
+	user.UpdateIdAdmin = adminId
+	user.StatusAccount = "deactive"
+	_, err = s.repository.UpdateStatusAccount(user)
+
+	if err != nil {
+		return false, err
+	}
+
+	if user.UnixID == "" {
+		return true, nil
+	}
+	return true, nil
+}
+
+func (s *service) ActivateAccountUser(input DeactiveUserInput, adminId string) (bool, error) {
+	// fin user by unix id
+	user, err := s.repository.FindByUnixID(input.UnixID)
+	if err != nil {
+		return false, err
+	}
+	if adminId == "" {
+		return false, errors.New("Admin ID is empty")
+	}
+	user.UpdateIdAdmin = adminId
+	user.StatusAccount = "active"
+	_, err = s.repository.UpdateStatusAccount(user)
+
+	if err != nil {
+		return false, err
+	}
+
+	if user.UnixID == "" {
+		return true, nil
+	}
+	return true, nil
 }
 
 func (s *service) RegisterUser(input RegisterUserInput) (User, error) {
@@ -136,7 +184,7 @@ func (s *service) ReportAdmin(UnixID string, input ReportToAdminInput) (NotifCam
 }
 
 // get all users
-func (s *service) GetAllReport() ([]NotifCampaign, error) {
+func (s *service) GetAllReports() ([]NotifCampaign, error) {
 	report, err := s.repository.GetAllReport()
 	if err != nil {
 		return report, err
