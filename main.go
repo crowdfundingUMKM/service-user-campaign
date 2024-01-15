@@ -58,7 +58,7 @@ func main() {
 	api.GET("/admin/get_all_user/:admin_id", middleware.AuthApiAdminMiddleware(authService, userCampaignService), userHandler.GetAllUserData)
 
 	// route give information to user about admin
-	api.GET("/campaigns/getCampaignID/:unix_id", userHandler.GetInfoAdminID)
+	api.GET("/campaign/getUserCampaignID/:unix_id", userHandler.GetInfoAdminID)
 
 	// verify token
 	api.GET("/verifyTokenCampaign", middleware.AuthMiddleware(authService, userCampaignService), userHandler.VerifyToken)
