@@ -63,9 +63,11 @@ func main() {
 	// verify token
 	api.GET("/verifyTokenCampaign", middleware.AuthMiddleware(authService, userCampaignService), userHandler.VerifyToken)
 
-	// Rounting admin
+	// Rounting user
 	api.POST("/register_campaign", userHandler.RegisterUser)
 	api.POST("/login_campaign", userHandler.Login)
+	api.GET("/email_check", userHandler.CheckEmailAvailability)
+	api.GET("/phone_check", userHandler.CheckPhoneAvailability)
 
 	api.GET("/get_user", middleware.AuthMiddleware(authService, userCampaignService), userHandler.GetUser)
 
@@ -78,7 +80,7 @@ func main() {
 	// make logout user by unix_id
 	api.DELETE("/logout_campaign", middleware.AuthMiddleware(authService, userCampaignService), userHandler.LogoutUser)
 
-	// Notif to admin route
+	// Notif route
 	api.POST("/report_to_admin", middleware.AuthMiddleware(authService, userCampaignService), notifHandler.ReportToAdmin)
 	api.GET("/admin/get_notif_admin", middleware.AuthApiAdminMiddleware(authService, userCampaignService), notifHandler.GetNotifToAdmin)
 

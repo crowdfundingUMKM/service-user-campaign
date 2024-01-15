@@ -10,6 +10,7 @@ type Repository interface {
 	Save(user User) (User, error)
 	FindByUnixID(unix_id string) (User, error)
 	FindByEmail(email string) (User, error)
+	FindByPhone(phone string) (User, error)
 	UpdateToken(user User) (User, error)
 	Update(user User) (User, error)
 	UpdatePassword(user User) (User, error)

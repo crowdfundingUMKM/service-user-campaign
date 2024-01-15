@@ -18,6 +18,8 @@ type Service interface {
 	RegisterUser(input RegisterUserInput) (User, error)
 	Login(input LoginInput) (User, error)
 	SaveToken(UnixID string, Token string) (User, error)
+	IsEmailAvailable(input CheckEmailInput) (bool, error)
+	IsPhoneAvailable(input CheckPhoneInput) (bool, error)
 
 	// notif
 	ReportAdmin(UnixID string, input ReportToAdminInput) (NotifCampaign, error)
@@ -152,6 +154,36 @@ func (s *service) Login(input LoginInput) (User, error) {
 	}
 
 	return user, nil
+}
+
+func (s *service) IsEmailAvailable(input CheckEmailInput) (bool, error) {
+	email := input.Email
+
+	user, err := s.repository.FindByEmail(email)
+	if err != nil {
+		return false, err
+	}
+
+	if user.ID == 0 {
+		return true, nil
+	}
+
+	return false, nil
+}
+
+func (s *service) IsPhoneAvailable(input CheckPhoneInput) (bool, error) {
+	phone := input.Phone
+
+	user, err := s.repository.FindByPhone(phone)
+	if err != nil {
+		return false, err
+	}
+
+	if user.UnixID == "" {
+		return true, nil
+	}
+
+	return false, nil
 }
 
 // save token to database
