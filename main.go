@@ -34,6 +34,7 @@ func main() {
 
 	// setup handler
 	userHandler := handler.NewUserHandler(userCampaignService, authService)
+	notifHandler := handler.NewNotifHandler(userCampaignService, authService)
 
 	// END SETUP
 
@@ -78,7 +79,7 @@ func main() {
 	api.DELETE("/logout_campaign", middleware.AuthMiddleware(authService, userCampaignService), userHandler.LogoutUser)
 
 	// Notif to admin route
-	// api.POST("/report_to_admin", middleware.AuthMiddleware(authService, userCampaignService), notifHandler.ReportToAdmin)
+	api.POST("/report_to_admin", middleware.AuthMiddleware(authService, userCampaignService), notifHandler.ReportToAdmin)
 
 	url := fmt.Sprintf("%s:%s", os.Getenv("SERVICE_HOST"), os.Getenv("SERVICE_PORT"))
 	router.Run(url)

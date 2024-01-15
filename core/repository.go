@@ -116,12 +116,12 @@ func (r *repository) UploadAvatarImage(user User) (User, error) {
 	return user, nil
 }
 
-func (r *repository) SaveReport(notifInvestor NotifCampaign) (NotifCampaign, error) {
-	err := r.db.Create(&notifInvestor).Error
+func (r *repository) SaveReport(notifCampaign NotifCampaign) (NotifCampaign, error) {
+	err := r.db.Create(&notifCampaign).Error
 	if err != nil {
-		return notifInvestor, err
+		return notifCampaign, err
 	}
-	return notifInvestor, nil
+	return notifCampaign, nil
 
 }
 
