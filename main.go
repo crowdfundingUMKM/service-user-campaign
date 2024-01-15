@@ -71,11 +71,11 @@ func main() {
 	api.PUT("/update_profile", middleware.AuthMiddleware(authService, userCampaignService), userHandler.UpdateUser)
 	//make update password user by unix_id
 	api.PUT("/update_password", middleware.AuthMiddleware(authService, userCampaignService), userHandler.UpdatePassword)
-	//make create image profile user by unix_id this for update
+	//make create image profile user by unix_id this for update -> update same
 	api.POST("/upload_avatar", middleware.AuthMiddleware(authService, userCampaignService), userHandler.UploadAvatar)
 
 	// make logout user by unix_id
-	// api.POST("/logout_campaign", middleware.AuthMiddleware(authService, userCampaignService), userHandler.LogoutUser)
+	api.DELETE("/logout_campaign", middleware.AuthMiddleware(authService, userCampaignService), userHandler.LogoutUser)
 
 	// Notif to admin route
 	// api.POST("/report_to_admin", middleware.AuthMiddleware(authService, userCampaignService), notifHandler.ReportToAdmin)

@@ -23,6 +23,10 @@ type Service interface {
 
 	UpdatePasswordByUnixID(UnixID string, input UpdatePasswordInput) (User, error)
 	UpdateUserByUnixID(UnixID string, input UpdateUserInput) (User, error)
+
+	SaveAvatar(UnixID string, fileLocation string) (User, error)
+
+	DeleteToken(UnixID string) (User, error)
 }
 
 type service struct {
@@ -191,6 +195,42 @@ func (s *service) UpdatePasswordByUnixID(UnixID string, input UpdatePasswordInpu
 	user.PasswordHash = string(passwordHash)
 
 	updatedUser, err := s.repository.UpdatePassword(user)
+	if err != nil {
+		return updatedUser, err
+	}
+
+	return updatedUser, nil
+}
+
+func (s *service) SaveAvatar(UnixID string, fileLocation string) (User, error) {
+	user, err := s.repository.FindByUnixID(UnixID)
+	if err != nil {
+		return user, err
+	}
+
+	user.AvatarFileName = fileLocation
+
+	updatedUser, err := s.repository.UploadAvatarImage(user)
+	if err != nil {
+		return updatedUser, err
+	}
+
+	return updatedUser, nil
+}
+
+func (s *service) DeleteToken(UnixID string) (User, error) {
+	user, err := s.repository.FindByUnixID(UnixID)
+	if err != nil {
+		return user, err
+	}
+
+	if user.UnixID == "" {
+		return user, errors.New("No user found on with that ID")
+	}
+
+	user.Token = ""
+
+	updatedUser, err := s.repository.UpdateToken(user)
 	if err != nil {
 		return updatedUser, err
 	}

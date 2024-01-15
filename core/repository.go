@@ -13,6 +13,7 @@ type Repository interface {
 	UpdateToken(user User) (User, error)
 	Update(user User) (User, error)
 	UpdatePassword(user User) (User, error)
+	UploadAvatarImage(user User) (User, error)
 
 	// Notif
 	SaveReport(report NotifCampaign) (NotifCampaign, error)

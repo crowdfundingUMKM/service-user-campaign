@@ -1,13 +1,20 @@
 package handler
 
 import (
+	"fmt"
+	"io"
 	"net/http"
+	"net/url"
+	"os"
 	api_admin "service-user-campaign/api/admin"
 	"service-user-campaign/auth"
 	"service-user-campaign/core"
 	"service-user-campaign/helper"
 
+	"cloud.google.com/go/storage"
 	"github.com/gin-gonic/gin"
+	"google.golang.org/api/option"
+	"google.golang.org/appengine"
 )
 
 type userCampaignHandler struct {
@@ -18,6 +25,10 @@ type userCampaignHandler struct {
 func NewUserHandler(userService core.Service, authService auth.Service) *userCampaignHandler {
 	return &userCampaignHandler{userService, authService}
 }
+
+var (
+	storageClient *storage.Client
+)
 
 // get info id admin not use middleware
 func (h *userCampaignHandler) GetInfoAdminID(c *gin.Context) {
@@ -322,6 +333,114 @@ func (h *userCampaignHandler) UpdatePassword(c *gin.Context) {
 	formatter := core.FormatterUserDetail(currentUser, updatedUser)
 
 	response := helper.APIResponse("Password has been updated", http.StatusOK, "success", formatter)
+	c.JSON(http.StatusOK, response)
+	return
+}
+
+func (h *userCampaignHandler) UploadAvatar(c *gin.Context) {
+	f, _, err := c.Request.FormFile("avatar_file_name")
+	if err != nil {
+		data := gin.H{"is_uploaded": false}
+		response := helper.APIResponse("Failed to upload avatar image", http.StatusBadRequest, "error", data)
+
+		c.JSON(http.StatusBadRequest, response)
+		return
+	}
+
+	currentUser := c.MustGet("currentUser").(core.User)
+	userID := currentUser.UnixID
+	userName := currentUser.Name
+
+	// if you logout you can't get user
+	if currentUser.Token == "" {
+		errorMessage := gin.H{"errors": "Your account is logout"}
+		response := helper.APIResponse("Get user failed", http.StatusUnprocessableEntity, "error", errorMessage)
+		c.JSON(http.StatusUnprocessableEntity, response)
+		return
+	}
+
+	// initiate cloud storage os.Getenv("GCS_BUCKET")
+	bucket := fmt.Sprintf("%s", os.Getenv("GCS_BUCKET"))
+	subfolder := fmt.Sprintf("%s", os.Getenv("GCS_SUBFOLDER"))
+	// var err error
+	ctx := appengine.NewContext(c.Request)
+
+	storageClient, err = storage.NewClient(ctx, option.WithCredentialsFile("secret-keys.json"))
+
+	if err != nil {
+		// data := gin.H{"is_uploaded": false}
+		response := helper.APIResponse("Failed to upload avatar image to GCP", http.StatusBadRequest, "error", err)
+
+		c.JSON(http.StatusBadRequest, response)
+		return
+	}
+	defer f.Close()
+
+	objectName := fmt.Sprintf("%s/avatar-%s-%s", subfolder, userID, userName)
+	sw := storageClient.Bucket(bucket).Object(objectName).NewWriter(ctx)
+
+	if _, err := io.Copy(sw, f); err != nil {
+		// data := gin.H{"is_uploaded": false}
+		response := helper.APIResponse("Failed to upload avatar image to GCP", http.StatusBadRequest, "error", err)
+
+		c.JSON(http.StatusBadRequest, response)
+		return
+	}
+
+	if err := sw.Close(); err != nil {
+		// data := gin.H{"is_uploaded": false}
+		response := helper.APIResponse("Failed to upload avatar image to GCP", http.StatusBadRequest, "error", err)
+
+		c.JSON(http.StatusBadRequest, response)
+		return
+	}
+
+	u, err := url.Parse("/" + bucket + "/" + sw.Attrs().Name)
+	if err != nil {
+		// data := gin.H{"is_uploaded": false}
+		response := helper.APIResponse("Failed to upload avatar image to GCP", http.StatusBadRequest, "error", err)
+
+		c.JSON(http.StatusBadRequest, response)
+		return
+	}
+	path := u.String()
+
+	// save avatar to database
+	_, err = h.userService.SaveAvatar(userID, path)
+	if err != nil {
+		data := gin.H{"is_uploaded": false}
+		response := helper.APIResponse("Failed to upload avatar image", http.StatusBadRequest, "error", data)
+
+		c.JSON(http.StatusBadRequest, response)
+		return
+	}
+
+	data := gin.H{"is_uploaded": true}
+	response := helper.APIResponse("Avatar successfuly uploaded", http.StatusOK, "success", data)
+
+	c.JSON(http.StatusOK, response)
+}
+
+func (h *userCampaignHandler) LogoutUser(c *gin.Context) {
+	// get data from middleware
+	currentUser := c.MustGet("currentUser").(core.User)
+
+	// check if token is empty
+	if currentUser.Token == "" {
+		response := helper.APIResponse("Logout failed, your logout right now", http.StatusForbidden, "error", nil)
+		c.JSON(http.StatusBadRequest, response)
+		return
+	}
+
+	// delete token in database
+	_, err := h.userService.DeleteToken(currentUser.UnixID)
+	if err != nil {
+		response := helper.APIResponse("Logout failed", http.StatusBadRequest, "error", nil)
+		c.JSON(http.StatusBadRequest, response)
+		return
+	}
+
+	response := helper.APIResponse("Logout success", http.StatusOK, "success", nil)
 	c.JSON(http.StatusOK, response)
 	return
 }
