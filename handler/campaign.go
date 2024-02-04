@@ -3,6 +3,7 @@ package handler
 import (
 	"fmt"
 	"io"
+	"io/ioutil"
 	"net/http"
 	"net/url"
 	"os"
@@ -30,6 +31,42 @@ func NewUserHandler(userService core.Service, authService auth.Service) *userCam
 var (
 	storageClient *storage.Client
 )
+
+func (h *userCampaignHandler) GetLogtoAdmin(c *gin.Context) {
+	// check id admin
+	adminID := c.Param("admin_id")
+	adminInput := api_admin.AdminIdInput{UnixID: adminID}
+	getAdminValueId, err := api_admin.GetAdminId(adminInput)
+
+	if err != nil {
+		response := helper.APIResponse(err.Error(), http.StatusBadRequest, "error", nil)
+		c.JSON(http.StatusBadRequest, response)
+		return
+	}
+
+	currentAdmin := c.MustGet("currentUserAdmin").(api_admin.AdminId)
+
+	if c.Param("admin_id") == getAdminValueId && currentAdmin.UnixAdmin == getAdminValueId {
+		content, err := ioutil.ReadFile("./tmp/gin.log")
+		if err != nil {
+			response := helper.APIResponse("Failed to get log", http.StatusBadRequest, "error", nil)
+			c.JSON(http.StatusBadRequest, response)
+			return
+		}
+		// download with browser
+		if c.Query("download") == "true" {
+			c.Header("Content-Disposition", "attachment; filename=gin.log")
+			c.Data(http.StatusOK, "application/octet-stream", content)
+			return
+		}
+		// show in browser
+		c.String(http.StatusOK, string(content))
+	} else {
+		response := helper.APIResponse("Your not Admin, cannot Access", http.StatusUnprocessableEntity, "error", nil)
+		c.JSON(http.StatusNotFound, response)
+		return
+	}
+}
 
 func (h *userCampaignHandler) ServiceHealth(c *gin.Context) {
 	// check env open or not
@@ -273,8 +310,10 @@ func (h *userCampaignHandler) VerifyToken(c *gin.Context) {
 	}
 
 	data := gin.H{
-		"success":  "Your token is valid",
-		"admin_id": currentUser.UnixID,
+		"success":          "Your token campaign is valid",
+		"user_campaign_id": currentUser.UnixID,
+		"name":             currentUser.Name,
+		"email":            currentUser.Email,
 	}
 
 	response := helper.APIResponse("Successfuly get user by middleware", http.StatusOK, "success", data)
@@ -566,6 +605,14 @@ func (h *userCampaignHandler) UpdatePassword(c *gin.Context) {
 		return
 	}
 
+	// remove token in database
+	_, err = h.userService.DeleteToken(currentUser.UnixID)
+	if err != nil {
+		response := helper.APIResponse("Update password failed & failed remove tokens", http.StatusBadRequest, "error", nil)
+		c.JSON(http.StatusBadRequest, response)
+		return
+	}
+
 	formatter := core.FormatterUserDetail(currentUser, updatedUser)
 
 	response := helper.APIResponse("Password has been updated", http.StatusOK, "success", formatter)
@@ -601,7 +648,13 @@ func (h *userCampaignHandler) UploadAvatar(c *gin.Context) {
 	// var err error
 	ctx := appengine.NewContext(c.Request)
 
-	storageClient, err = storage.NewClient(ctx, option.WithCredentialsFile("secret-keys.json"))
+	// storageClient, err = storage.NewClient(ctx, option.WithCredentialsFile("secret-keys.json"))
+	// TODO : if set production to false, use secret-keys.json
+	if os.Getenv("PRODUCTION") == "false" {
+		storageClient, err = storage.NewClient(ctx, option.WithCredentialsFile("secret-keys.json"))
+	} else {
+		storageClient, err = storage.NewClient(ctx)
+	}
 
 	if err != nil {
 		// data := gin.H{"is_uploaded": false}
